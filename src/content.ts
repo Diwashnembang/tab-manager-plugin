@@ -1,4 +1,3 @@
-const Tabs: Map<number | string, chrome.tabs.Tab> = new Map();
 let leaderKey: string = "Control";
 let indexKey:  string = "";
 let AccessleaderKey: string = "Shift";
@@ -56,6 +55,8 @@ document.addEventListener("keydown", (e) => {
 
 ;
 });
+
+
 document.addEventListener("keyup", (e) => {
   if (!leaderKeyPressed) return;
   if (e.key === leaderKey) {
@@ -63,41 +64,20 @@ document.addEventListener("keyup", (e) => {
   }
 });
 
-interface TabResponse {
-  success: boolean;
-  data: chrome.tabs.Tab | undefined;
-}
 document.addEventListener("indexTab", (e) => {
   leaderKeyPressed = false;
   indexKeyPressed = false;
-  let tab: TabResponse = { success: false, data: undefined };
-  (async () => {
-    try {
-      tab = await chrome.runtime.sendMessage({ action: "getCurrentTab" });
-      if (tab.success && tab.data != undefined) {
-        Tabs.set(indexKey, tab.data);
-      } else {
-        console.error("tab is undefined", tab.data);
-      }
-      console.log(Tabs)
-    } catch (e) {
-      console.error("couldn't get current tab", e);
-    }
-  })();
+  console.log(indexKey)
+       chrome.runtime.sendMessage({ action: "getCurrentTab" ,additionalInfo:{
+        index : indexKey
+       }});
 });
 
 document.addEventListener("accessTab",(e)=>{
-    console.log(Tabs)
     AccessleaderKeyPressed=false;
     indexKeyPressed=false;
-    let accessKey = Tabs.get(indexKey.toLocaleLowerCase())
-    console.log("index key",indexKey)
-    if(!accessKey){
-        console.log(accessKey)
-        alert("cannot access unsaved tab")
-        return 
-    }
-    (async ()=>{
-        await chrome.runtime.sendMessage({action:"switchTab",tabId: accessKey})
+    
+    chrome.runtime.sendMessage({action:"switchTab",additionalInfo:{indexKey:indexKey}})
     })
-})
+
+

@@ -1,23 +1,30 @@
 
 let tab: chrome.tabs.Tab[];
+let  Tabs: Map<number | string, chrome.tabs.Tab> = new Map();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getCurrentTab") {
-      console.error("inn");
     (async () => {
       try {
         tab = await chrome.tabs.query({active:true,currentWindow: true});
-        sendResponse({success: true , data: tab[0]})
+        Tabs.set(request.additionalInfo.index,tab[0]) 
+        console.log(Tabs)
       } catch (e) {
-        sendResponse({success : false, data: undefined})
-      }
-    })();
+        console.log("error getting tab",e)
+    }})();
     return true
   }
 
 
   if( request.action ==="switchTab"){
-    console.log("in switch tab",request.tabId)
-    chrome.tabs.update(request.tabId,{active: true})
+    let indexKey = request.additionalInfo.indexKey
+        let accessKey = Tabs.get(indexKey.toLocaleLowerCase())
+        console.log("index key",indexKey)
+        if(!accessKey){
+            console.log(accessKey)
+            return 
+        }
+    chrome.tabs.update(Number(accessKey.id),{active: true})
+    
   }
 });
 
