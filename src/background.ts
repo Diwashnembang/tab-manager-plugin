@@ -1,14 +1,4 @@
-function getCurrentTab(): Promise<chrome.tabs.Tab | undefined> {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.getCurrent((tab) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(tab);
-      }
-    });
-  });
-}
+
 let tab: chrome.tabs.Tab[];
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getCurrentTab") {
@@ -23,5 +13,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })();
     return true
   }
+
+
+  if( request.action ==="switchTab"){
+    console.log("in switch tab",request.tabId)
+    chrome.tabs.update(request.tabId,{active: true})
+  }
 });
-console.log("background loaded")
+
