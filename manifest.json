@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "My Chrome Extension",
+  "name": "Switch Tab",
   "version": "1.0",
-  "description": "A Chrome extension built with TypeScript.",
+  "description": "A Chrome extension for faster tab switch.",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"
   },
