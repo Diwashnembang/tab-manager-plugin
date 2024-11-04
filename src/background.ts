@@ -1,6 +1,10 @@
 
 let tab: chrome.tabs.Tab[];
 let  Tabs: Map<number | string, chrome.tabs.Tab> = new Map();
+// Utility function to serialize a Map to an array of key-value pairs
+function serializeMap(map: Map<any, any>): [any, any][] {
+    return Array.from(map.entries()); // Converts the Map to an array of tuples
+}
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getCurrentTab") {
     (async () => {
@@ -25,6 +29,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
     chrome.tabs.update(Number(accessKey.id),{active: true})
     
+  }
+  if(request.action ==="getTabs"){
+    sendResponse(serializeMap(Tabs)) 
+    return true 
   }
 });
 

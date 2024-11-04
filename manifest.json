@@ -9,10 +9,13 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["dist/content.js"] ,
-"run_at": "document_end"
+      "js": ["dist/content.js"],
+      "run_at": "document_end"
     }
   ],
+  "action": {
+    "default_popup": "dist/popup.html"
+  },
   "background": {
     "service_worker": "dist/background.js"
   },
