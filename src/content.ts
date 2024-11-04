@@ -1,6 +1,6 @@
-let leaderKey: string = "Control";
+let leaderKey: string = "Tab";
 let indexKey:  string = "";
-let AccessleaderKey: string = "Shift";
+let AccessleaderKey: string = " ";
 let leaderKeyPressed: boolean = false;
 let indexKeyPressed: boolean = false;
 let AccessleaderKeyPressed: boolean = false;
@@ -27,41 +27,28 @@ function runAccessTabEvent(){
 
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === leaderKey) {
-    leaderKeyPressed = true;
-    trackKeyPressedDuration(()=>{
-        if (leaderKeyPressed == false) return
-        leaderKeyPressed = false
-        console.log(leaderKeyPressed)
-    },5000)
-    return;
-  } else if (e.key === AccessleaderKey) {
-    AccessleaderKeyPressed = true;
-    trackKeyPressedDuration(()=>{
-        if (AccessleaderKeyPressed == false) return
-        AccessleaderKeyPressed=false
-    },5000)
-    return;
-  }
-  if (leaderKeyPressed && leaderKey != AccessleaderKey) {
-    indexKey = e.key;
-    indexKeyPressed = true;
-    runIndexCurrentabEvent();
-  }else  if(AccessleaderKeyPressed && leaderKey != AccessleaderKey){
-    indexKey = e.key
-    indexKeyPressed = true
-    runAccessTabEvent()
-  }
+    if(!indexKeyPressed && e.key !== "Alt"){
+        indexKey = e.key
+        indexKeyPressed = true 
+        return 
+    }
 
-;
+    if(indexKeyPressed && e.key=== leaderKey){
+        leaderKeyPressed= true
+        runIndexCurrentabEvent()
+        return 
+    }
+
+    if(e.key === AccessleaderKey&& indexKey){
+        AccessleaderKeyPressed = true
+        runAccessTabEvent()
+    }
 });
 
 
 document.addEventListener("keyup", (e) => {
-  if (!leaderKeyPressed) return;
-  if (e.key === leaderKey) {
-    leaderKeyPressed = false;
-  }
+  if (!indexKeyPressed) return;
+    indexKeyPressed = false;
 });
 
 document.addEventListener("indexTab", (e) => {
