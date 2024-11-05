@@ -1,6 +1,6 @@
 let leaderKey: string = "Tab";
 let indexKey:  string = "";
-let AccessleaderKey: string = " ";
+let AccessleaderKey: string = "Shift";
 let leaderKeyPressed: boolean = false;
 let indexKeyPressed: boolean = false;
 let AccessleaderKeyPressed: boolean = false;

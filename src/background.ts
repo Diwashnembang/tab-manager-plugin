@@ -11,7 +11,6 @@ function serializeMap(map: Map<any, any>): [any, any][] {
 }
 
 function populateExistingWindow(){
-    console.log("inn");
     (async ()=>{
         let windowsHistory: chrome.windows.Window[] =await chrome.windows.getAll()
 
@@ -19,14 +18,12 @@ function populateExistingWindow(){
              let aux: windowData = { window: windowsHistory[i], tabs: new Map<number|string , chrome.tabs.Tab>()};
            windows.push(aux) 
         }
-        console.log("windows pop",windows)
     })()
 }
 
 chrome.windows.onCreated.addListener((newWindow) => {
   let aux: windowData = { window: newWindow, tabs: new Map<number|string , chrome.tabs.Tab>()};
   windows.push(aux);
-  console.log('window', windows)
 });
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getCurrentTab") {
@@ -40,7 +37,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             break;
           }
         }
-        console.log(Tabs);
       } catch (e) {
         console.log("error getting tab", e);
       }
@@ -54,7 +50,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         async () => {
       let currentWindow: chrome.windows.Window =
         await chrome.windows.getCurrent();
-        console.log("this is current window",currentWindow)
       for (let i = 0; i < windows.length; i++) {
         //switch tab in the correct window
         if (currentWindow.id === windows[i].window.id) {
@@ -71,10 +66,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   if (request.action === "getTabs") {
     (async () => {
+        //getting lastfocused because getting curring focued retunrns the pop up window
       let currentWindow: chrome.windows.Window =
-        await chrome.windows.getCurrent();
+        await chrome.windows.getLastFocused();
       for (let i = 0; i < windows.length; i++) {
+        console.log("this is all windows tab",windows[i].tabs)
         if (currentWindow.id === windows[i].window.id) {
+            console.log("this is windws's tab",windows[i].tabs)
           sendResponse(serializeMap(windows[i].tabs));
           break;
         }
