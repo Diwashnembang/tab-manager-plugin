@@ -10,19 +10,46 @@ function serializeMap(map: Map<any, any>): [any, any][] {
   return Array.from(map.entries()); // Converts the Map to an array of tuples
 }
 
-function populateExistingWindow(){
-    (async ()=>{
-        let windowsHistory: chrome.windows.Window[] =await chrome.windows.getAll()
-
-        for (let i = 0; i < windowsHistory.length; i++) {
-             let aux: windowData = { window: windowsHistory[i], tabs: new Map<number|string , chrome.tabs.Tab>()};
-           windows.push(aux) 
+function populateExistingWindow() {
+  (async () => {
+    try {
+      let windowsHistory: chrome.windows.Window[] = await chrome.windows.getAll(
+        {
+          populate: true,
         }
-    })()
-}
+      );
 
+      for (let i = 0; i < windowsHistory.length; i++) {
+        let aux: windowData = {
+          window: windowsHistory[i],
+          tabs: new Map<number | string, chrome.tabs.Tab>(),
+        };
+        windows.push(aux);
+        let tabs = windowsHistory[i]?.tabs;
+        console.log(tabs)
+        console.log("this is windows",windows)
+        if (tabs) {
+          for (let j = 0; j < tabs.length; j++) {
+            let tabId = tabs[j]?.id;
+            if (!tabId) {
+            throw(`tab id unvalid ${tabs[i]}`)
+            } else {
+              chrome.scripting.executeScript({target:{tabId: tabId},files:["dist/content.js"]})
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.log("error populating window", e);
+    }
+    console.log("all windoes",windows)
+  })();
+}
 chrome.windows.onCreated.addListener((newWindow) => {
-  let aux: windowData = { window: newWindow, tabs: new Map<number|string , chrome.tabs.Tab>()};
+  let aux: windowData = {
+    window: newWindow,
+    tabs: new Map<number | string, chrome.tabs.Tab>(),
+  };
   windows.push(aux);
 });
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -46,8 +73,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.action === "switchTab") {
     let indexKey = request.additionalInfo.indexKey;
-    (
-        async () => {
+    (async () => {
       let currentWindow: chrome.windows.Window =
         await chrome.windows.getCurrent();
       for (let i = 0; i < windows.length; i++) {
@@ -66,13 +92,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   if (request.action === "getTabs") {
     (async () => {
-        //getting lastfocused because getting curring focued retunrns the pop up window
+      //getting lastfocused because getting curring focued retunrns the pop up window
       let currentWindow: chrome.windows.Window =
         await chrome.windows.getLastFocused();
       for (let i = 0; i < windows.length; i++) {
-        console.log("this is all windows tab",windows[i].tabs)
+        console.log("this is all windows tab", windows[i].tabs);
         if (currentWindow.id === windows[i].window.id) {
-            console.log("this is windws's tab",windows[i].tabs)
+          console.log("this is windws's tab", windows[i].tabs);
           sendResponse(serializeMap(windows[i].tabs));
           break;
         }
@@ -82,5 +108,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-
-populateExistingWindow()
+populateExistingWindow();
