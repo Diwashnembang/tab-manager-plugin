@@ -19,6 +19,7 @@ function removeEventListener(events: Events[]) {
   });
 }
 
+
 function trackKeyPressedDuration(callback: () => void, duration: number) {
   setTimeout(() => {
     callback();
@@ -35,20 +36,22 @@ function runAccessTabEvent() {
   document.dispatchEvent(accessTab);
 }
 function handleKeydown(e: any) {
-  if (!indexKeyPressed && e.key !== "Alt") {
+  if (!indexKeyPressed && e.key !== "Alt" && e.key !== AccessleaderKey && e.key  !== leaderKey) {
     indexKey = e.key;
     indexKeyPressed = true;
     return;
   }
 
-  if (indexKeyPressed && e.key === leaderKey) {
+  if (indexKeyPressed && e.key === leaderKey && leaderKey != indexKey) {
     leaderKeyPressed = true;
     runIndexCurrentabEvent();
     return;
   }
 
-  if (e.key === AccessleaderKey && indexKey) {
+  if (e.key === AccessleaderKey && indexKey && indexKey != AccessleaderKey) {
     AccessleaderKeyPressed = true;
+    console.log("this is access keypresses", AccessleaderKeyPressed)
+    console.log("this is index key",indexKey)
     runAccessTabEvent();
   }
 }
@@ -74,9 +77,8 @@ function handleIndexTab(e: any) {
 }
 
 function handleAccessTab(e: any) {
-  AccessleaderKeyPressed = false;
-  indexKeyPressed = false;
   console.log(indexKey)
+  console.log("this is value key",e.keys)
   try {
     chrome.runtime.sendMessage({
       action: "switchTab",
@@ -86,6 +88,8 @@ function handleAccessTab(e: any) {
     console.log("error switching tab", e);
     
   }
+  AccessleaderKeyPressed = false;
+  indexKeyPressed = false;
 }
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
