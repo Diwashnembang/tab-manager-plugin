@@ -14,29 +14,8 @@ function populateExistingWindow() {
   // // Retrieve the windows data from chrome.storage when the service worker starts
   (async () => {
     try {
-      let result = await chrome.storage.session.get(["windowsData"]);
-      if (result.windowsData){
-        console.log("this is from session", result.windowsData);
-        windows =result.windowsData;
-      for (let i = 0; i < windows.length; i++) {
-        let tabs = windows[i].window?.tabs;
-        if (tabs) {
-          for (let j = 0; j < tabs.length; j++) {
-            let tabId = tabs[j]?.id;
-            if (!tabId) {
-              throw `tab id unvalid ${tabs[i]}`;
-            } else {
-              chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ["dist/content.js"],
-              });
-            }
-          }
-        }
-        }
-        return
-      }
-
+      let onStartUp = await chrome.storage.session.get(["onStartUp"]);
+      if (onStartUp) return;
       let windowsHistory: chrome.windows.Window[] = await chrome.windows.getAll(
         {
           populate: true,
@@ -67,7 +46,6 @@ function populateExistingWindow() {
     } catch (e) {
       console.log("error populating window", e);
     }
-    console.log("all windoes", windows);
   })();
 }
 chrome.windows.onCreated.addListener((newWindow) => {
@@ -86,8 +64,8 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
       if (tab[0].windowId === windows[i].window.id) {
         windows[i].tabs.set(request.additionalInfo.index, tab[0]);
         await chrome.storage.session.set({ windowsData: windows });
-        let result = await chrome.storage.session.get(["windowsData"])
-        console.log("this is after the update ",result.windowsData)
+        let result = await chrome.storage.session.get(["windowsData"]);
+        console.log("this is after the update ", result.windowsData);
         break;
       }
     }
@@ -99,7 +77,7 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
 async function switchTabHandler(request: any, port: chrome.runtime.Port) {
   let indexKey = request.additionalInfo.indexKey;
   let currentWindow: chrome.windows.Window = await chrome.windows.getCurrent();
-  
+
   for (let i = 0; i < windows.length; i++) {
     //switch tab in the correct window
     if (currentWindow.id === windows[i].window.id) {
@@ -124,25 +102,32 @@ async function getTabsHandler(request: any, port: chrome.runtime.Port) {
     }
   }
 }
-  chrome.runtime.onConnect.addListener((port) => {
-    port.onMessage.addListener((message) => {
-      if (message.action === "getCurrentTab") {
-        getCurrentTabHandler(message, port);
-      }
-      if (message.action === "switchTab") {
-        switchTabHandler(message, port);
-      }
-      if (message.action === "getTabs") {
-        getTabsHandler(message, port);
-      }
-      if (message.action === "ping") {
-        console.log("Received ping, service worker is alive");
-      }
-    });
-    port.onDisconnect.addListener(async () => {
-      await chrome.storage.session.set({ windowsData: windows });
-    });
+chrome.runtime.onStartup.addListener(async () => {
+  let result = await chrome.storage.session.get(["windowsData"]);
+  if (result.windowsData) {
+    console.log("this is from session", result.windowsData);
+    windows = result.windowData;
+  }
+  await chrome.storage.session.set({ onStartUp: true });
+});
+chrome.runtime.onConnect.addListener((port) => {
+  port.onMessage.addListener((message) => {
+    if (message.action === "getCurrentTab") {
+      getCurrentTabHandler(message, port);
+    }
+    if (message.action === "switchTab") {
+      switchTabHandler(message, port);
+    }
+    if (message.action === "getTabs") {
+      getTabsHandler(message, port);
+    }
+    if (message.action === "ping") {
+      console.log("Received ping, service worker is alive");
+    }
   });
-  
-  populateExistingWindow();
+  port.onDisconnect.addListener(async () => {
+    await chrome.storage.session.set({ windowsData: windows });
+  });
+});
 
+populateExistingWindow();
