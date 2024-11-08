@@ -20,6 +20,6 @@
     "service_worker": "dist/background.js"
   },
 
-  "permissions": ["activeTab", "scripting", "tabs", "windows"],
+  "permissions": ["activeTab", "scripting", "tabs", "windows","storage"],
   "host_permissions": ["http://*/*", "https://*/*"]
 }

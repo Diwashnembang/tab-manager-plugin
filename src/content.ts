@@ -15,10 +15,9 @@ const accessTab = new CustomEvent("accessTab");
 
 function removeEventListener(events: Events[]) {
   events.forEach((event) => {
-    document.removeEventListener(event.event,event.handler);
+    document.removeEventListener(event.event, event.handler);
   });
 }
-
 
 function trackKeyPressedDuration(callback: () => void, duration: number) {
   setTimeout(() => {
@@ -36,7 +35,12 @@ function runAccessTabEvent() {
   document.dispatchEvent(accessTab);
 }
 function handleKeydown(e: any) {
-  if (!indexKeyPressed && e.key !== "Alt" && e.key !== AccessleaderKey && e.key  !== leaderKey) {
+  if (
+    !indexKeyPressed &&
+    e.key !== "Alt" &&
+    e.key !== AccessleaderKey &&
+    e.key !== leaderKey
+  ) {
     indexKey = e.key;
     indexKeyPressed = true;
     return;
@@ -50,8 +54,8 @@ function handleKeydown(e: any) {
 
   if (e.key === AccessleaderKey && indexKey && indexKey != AccessleaderKey) {
     AccessleaderKeyPressed = true;
-    console.log("this is access keypresses", AccessleaderKeyPressed)
-    console.log("this is index key",indexKey)
+    console.log("this is access keypresses", AccessleaderKeyPressed);
+    console.log("this is index key", indexKey);
     runAccessTabEvent();
   }
 }
@@ -63,43 +67,42 @@ function handleKeyUp(e: any) {
 function handleIndexTab(e: any) {
   leaderKeyPressed = false;
   indexKeyPressed = false;
-  console.log(indexKey);
-  try {
-    chrome.runtime.sendMessage({
-      action: "getCurrentTab",
-      additionalInfo: {
-        index: indexKey,
-      },
-    });
-  } catch (e) {
-    console.log("error sending get current message", e);
-  }
+  port.postMessage({
+    action: "getCurrentTab",
+    additionalInfo: {
+      index: indexKey,
+    },
+  });
 }
 
 function handleAccessTab(e: any) {
-  console.log(indexKey)
-  console.log("this is value key",e.keys)
-  try {
-    chrome.runtime.sendMessage({
-      action: "switchTab",
-      additionalInfo: { indexKey: indexKey },
-    });
-  } catch (e) {
-    console.log("error switching tab", e);
-    
-  }
+  port.postMessage({
+    action: "switchTab",
+    additionalInfo: { indexKey: indexKey },
+  });
   AccessleaderKeyPressed = false;
   indexKeyPressed = false;
 }
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
   { event: "keyUp", handler: handleKeyUp },
-  { event: "accessTab", handler:handleAccessTab },
+  { event: "accessTab", handler: handleAccessTab },
   { event: "indexTab", handler: handleIndexTab },
 ];
 
-removeEventListener(events);
+const port = chrome.runtime.connect({ name: "content" });
 document.addEventListener("keydown", handleKeydown);
 document.addEventListener("keyup", handleKeyUp);
 document.addEventListener("indexTab", handleIndexTab);
 document.addEventListener("accessTab", handleAccessTab);
+port.onMessage.addListener((response)=>{
+  if(response.message === "cleanup events"){
+    removeEventListener(events)
+  }
+})
+
+
+// // Periodically send a ping to keep the service worker alive
+// setInterval(() => {
+//   port.postMessage({ action: "ping" });
+// }, 60000)
