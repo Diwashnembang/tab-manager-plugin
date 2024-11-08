@@ -90,16 +90,17 @@ const events: Events[] = [
   { event: "indexTab", handler: handleIndexTab },
 ];
 
-const port = chrome.runtime.connect({ name: "content" });
+let port = chrome.runtime.connect({ name: "content" });
 document.addEventListener("keydown", handleKeydown);
 document.addEventListener("keyup", handleKeyUp);
 document.addEventListener("indexTab", handleIndexTab);
 document.addEventListener("accessTab", handleAccessTab);
-port.onMessage.addListener((response)=>{
-  if(response.message === "cleanup events"){
-    removeEventListener(events)
-  }
+port.onDisconnect.addListener(()=>{
+  removeEventListener(events)
+  port.disconnect()
+  port = chrome.runtime.connect({name:"content"})
 })
+    //   // Save the windows data to chrome.storage
 
 
 // // Periodically send a ping to keep the service worker alive

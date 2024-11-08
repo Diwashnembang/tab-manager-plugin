@@ -15,9 +15,26 @@ function populateExistingWindow() {
   (async () => {
     try {
       let result = await chrome.storage.session.get(["windowsData"]);
-      if (result.windowData){
+      if (result.windowsData){
         console.log("this is from session", result.windowsData);
-        windows.push(result.windowsData);
+        windows =result.windowsData;
+      for (let i = 0; i < windows.length; i++) {
+        let tabs = windows[i].window?.tabs;
+        if (tabs) {
+          for (let j = 0; j < tabs.length; j++) {
+            let tabId = tabs[j]?.id;
+            if (!tabId) {
+              throw `tab id unvalid ${tabs[i]}`;
+            } else {
+              chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                files: ["dist/content.js"],
+              });
+            }
+          }
+        }
+        }
+        return
       }
 
       let windowsHistory: chrome.windows.Window[] = await chrome.windows.getAll(
@@ -33,8 +50,6 @@ function populateExistingWindow() {
         };
         windows.push(aux);
         let tabs = windowsHistory[i]?.tabs;
-        console.log(tabs);
-        console.log("this is windows", windows);
         if (tabs) {
           for (let j = 0; j < tabs.length; j++) {
             let tabId = tabs[j]?.id;
@@ -84,6 +99,7 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
 async function switchTabHandler(request: any, port: chrome.runtime.Port) {
   let indexKey = request.additionalInfo.indexKey;
   let currentWindow: chrome.windows.Window = await chrome.windows.getCurrent();
+  
   for (let i = 0; i < windows.length; i++) {
     //switch tab in the correct window
     if (currentWindow.id === windows[i].window.id) {
@@ -108,25 +124,25 @@ async function getTabsHandler(request: any, port: chrome.runtime.Port) {
     }
   }
 }
-chrome.runtime.onConnect.addListener((port) => {
-  port.onMessage.addListener((message) => {
-    if (message.action === "getCurrentTab") {
-      getCurrentTabHandler(message, port);
-    }
-    if (message.action === "switchTab") {
-      switchTabHandler(message, port);
-    }
-    if (message.action === "getTabs") {
-      getTabsHandler(message, port);
-    }
-    if (message.action === "ping") {
-      console.log("Received ping, service worker is alive");
-    }
+  chrome.runtime.onConnect.addListener((port) => {
+    port.onMessage.addListener((message) => {
+      if (message.action === "getCurrentTab") {
+        getCurrentTabHandler(message, port);
+      }
+      if (message.action === "switchTab") {
+        switchTabHandler(message, port);
+      }
+      if (message.action === "getTabs") {
+        getTabsHandler(message, port);
+      }
+      if (message.action === "ping") {
+        console.log("Received ping, service worker is alive");
+      }
+    });
+    port.onDisconnect.addListener(async () => {
+      await chrome.storage.session.set({ windowsData: windows });
+    });
   });
-  port.onDisconnect.addListener(async () => {
-    port.postMessage({ message: "cleanup events" });
-    //   // Save the windows data to chrome.storage
-    await chrome.storage.session.set({ windowsData: windows });
-  });
-});
-populateExistingWindow();
+  
+  populateExistingWindow();
+
