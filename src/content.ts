@@ -70,7 +70,7 @@ function handleIndexTab(e: any) {
   port.postMessage({
     action: "getCurrentTab",
     additionalInfo: {
-      index: indexKey,
+      index : indexKey,
     },
   });
 }
@@ -90,15 +90,15 @@ const events: Events[] = [
   { event: "indexTab", handler: handleIndexTab },
 ];
 
+console.log("connetion established with backgroound")
 let port = chrome.runtime.connect({ name: "content" });
 document.addEventListener("keydown", handleKeydown);
 document.addEventListener("keyup", handleKeyUp);
 document.addEventListener("indexTab", handleIndexTab);
 document.addEventListener("accessTab", handleAccessTab);
 port.onDisconnect.addListener(()=>{
+  console.log("connection to port lost")
   removeEventListener(events)
-  port.disconnect()
-  port = chrome.runtime.connect({name:"content"})
 })
     //   // Save the windows data to chrome.storage
 

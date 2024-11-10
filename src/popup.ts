@@ -7,7 +7,7 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
   
   PopUpPort.onMessage.addListener((response) => {
     try {
-      let tabs: [any, any][] = response;
+      let tabs: Record<number | string, chrome.tabs.Tab> = response;
       
       if (!tabList) {
         console.log("cannot render tabs in popup: tabList is null");
@@ -16,32 +16,34 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
       
       tabList.innerHTML = ""; // Clear existing items
 
-      tabs.forEach(([key, tab]) => {
+      // Iterate over the object using Object.entries()
+      Object.entries(tabs).forEach(([key, tab]) => {
+        // Create the list item for each tab
         const listItem = document.createElement("li");
         listItem.textContent = `Index: ${key}, URL: ${tab.url}`;
 
         // Create the delete button
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
-        
+
         // Add a click event listener to the delete button
         deleteButton.addEventListener("click", () => {
           // Send a message to delete the tab
           PopUpPort.postMessage({ action: "deleteTab", tabId: key });
-          
+
           // Remove the item from the list in the popup UI
           listItem.remove();
         });
 
-        // Append the button to the list item
+        // Append the delete button to the list item
         listItem.appendChild(deleteButton);
-        
+
         // Append the list item to the tabList
         tabList.appendChild(listItem);
       });
     } catch (e) {
       console.log("Couldn't get tabs", e);
-    }
+    } 
   });
 })();
 

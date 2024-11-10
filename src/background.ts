@@ -1,59 +1,73 @@
 interface windowData {
   window: chrome.windows.Window;
-  tabs: Map<number | string, chrome.tabs.Tab>;
+  tabs: Record<number | string, chrome.tabs.Tab>;
 }
+
 let tab: chrome.tabs.Tab[];
 let windows: windowData[] = [];
-let Tabs: Map<number | string, chrome.tabs.Tab> = new Map();
+
 // Utility function to serialize a Map to an array of key-value pairs
 function serializeMap(map: Map<any, any>): [any, any][] {
   return Array.from(map.entries()); // Converts the Map to an array of tuples
 }
 
-function populateExistingWindow() {
-  // // Retrieve the windows data from chrome.storage when the service worker starts
-  (async () => {
-    try {
-      let onStartUp = await chrome.storage.session.get(["onStartUp"]);
-      if (onStartUp) return;
-      let windowsHistory: chrome.windows.Window[] = await chrome.windows.getAll(
-        {
-          populate: true,
-        }
-      );
+async function populateExistingWindow() {
+  try {
+    // Retrieve the windows data from chrome.storage when the service worker starts
+    let result = await chrome.storage.session.get(["windowsData"]);
+    let windowsHistory: chrome.windows.Window[] = [];
 
+    if (result.windowsData) {
+      console.log("This is from session:", result.windowsData);
+      windows = result.windowsData;
+      console.log("This is windows after loading from session:", windows);
+    } else {
+      console.log("No window data; loading all tabs into windows");
+      windowsHistory = await chrome.windows.getAll({
+        populate: true,
+      });
       for (let i = 0; i < windowsHistory.length; i++) {
         let aux: windowData = {
           window: windowsHistory[i],
-          tabs: new Map<number | string, chrome.tabs.Tab>(),
+          tabs: {},
         };
         windows.push(aux);
-        let tabs = windowsHistory[i]?.tabs;
-        if (tabs) {
-          for (let j = 0; j < tabs.length; j++) {
-            let tabId = tabs[j]?.id;
-            if (!tabId) {
-              throw `tab id unvalid ${tabs[i]}`;
-            } else {
-              chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ["dist/content.js"],
-              });
-            }
+      }
+    }
+
+    // Populate windows with existing tab data if windowsHistory is not empty
+    for (let i = 0; i < windows.length; i++) {
+      let tabs = windows[i].window?.tabs;
+      if (tabs) {
+        for (let j = 0; j < tabs.length; j++) {
+          let tabId = tabs[j]?.id;
+          if (!tabId) {
+            throw `Tab ID invalid for tab: ${tabs[j]}`;
+          } else {
+            console.log("executing content sscript for all the tab");
+            chrome.scripting.executeScript({
+              target: { tabId: tabId },
+              files: ["dist/content.js"],
+            });
           }
         }
+      } else {
+        console.log("no tabs in windows");
       }
-    } catch (e) {
-      console.log("error populating window", e);
     }
-  })();
+  } catch (e) {
+    console.log("Error populating window:", e);
+  }
 }
+
 chrome.windows.onCreated.addListener((newWindow) => {
+  console.log("new window created");
   let aux: windowData = {
     window: newWindow,
-    tabs: new Map<number | string, chrome.tabs.Tab>(),
+    tabs: {},
   };
   windows.push(aux);
+  chrome.storage.session.set({ windowsData: windows });
 });
 
 async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
@@ -62,10 +76,13 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
     for (let i = 0; i < windows.length; i++) {
       //if current tab's window id == window id in the array
       if (tab[0].windowId === windows[i].window.id) {
-        windows[i].tabs.set(request.additionalInfo.index, tab[0]);
+        windows[i].tabs[request.additionalInfo.index] = tab[0];
+        // console.log("this is before the update", windows);
+        // const newData = JSON.parse(JSON.stringify(windows));
+        // console.log("this is new data", newData);
         await chrome.storage.session.set({ windowsData: windows });
         let result = await chrome.storage.session.get(["windowsData"]);
-        console.log("this is after the update ", result.windowsData);
+        console.log("this is after the update ", result);
         break;
       }
     }
@@ -81,9 +98,9 @@ async function switchTabHandler(request: any, port: chrome.runtime.Port) {
   for (let i = 0; i < windows.length; i++) {
     //switch tab in the correct window
     if (currentWindow.id === windows[i].window.id) {
-      let tab = windows[i].tabs.get(indexKey.toLocaleLowerCase());
+      let tab = windows[i].tabs[indexKey];
       if (!tab) {
-        console.log(tab);
+        console.log("inside switch tab when no tab is found", tab);
         return;
       }
       chrome.tabs.update(Number(tab.id), { active: true });
@@ -91,26 +108,25 @@ async function switchTabHandler(request: any, port: chrome.runtime.Port) {
     }
   }
 }
+
 async function getTabsHandler(request: any, port: chrome.runtime.Port) {
   //getting lastfocused because getting curring focued retunrns the pop up window
   let currentWindow: chrome.windows.Window =
     await chrome.windows.getLastFocused();
   for (let i = 0; i < windows.length; i++) {
     if (currentWindow.id === windows[i].window.id) {
-      port.postMessage(serializeMap(windows[i].tabs));
+      port.postMessage(windows[i].tabs);
       break;
     }
   }
 }
+
 chrome.runtime.onStartup.addListener(async () => {
-  let result = await chrome.storage.session.get(["windowsData"]);
-  if (result.windowsData) {
-    console.log("this is from session", result.windowsData);
-    windows = result.windowData;
-  }
-  await chrome.storage.session.set({ onStartUp: true });
+  await chrome.storage.session.set({ shouldWakeUp: false });
 });
+
 chrome.runtime.onConnect.addListener((port) => {
+  console.log(`${port.name}'s port connected`);
   port.onMessage.addListener((message) => {
     if (message.action === "getCurrentTab") {
       getCurrentTabHandler(message, port);
@@ -126,7 +142,11 @@ chrome.runtime.onConnect.addListener((port) => {
     }
   });
   port.onDisconnect.addListener(async () => {
+    console.log("port disconnected", port.name);
     await chrome.storage.session.set({ windowsData: windows });
+    if (port.name === "popup") return;
+    let result = await chrome.storage.session.set({ shouldWakeUp: true });
+    console.log("set should wake up to true ");
   });
 });
 
