@@ -6,6 +6,7 @@ module.exports = {
     background: "./src/background.ts",
     content: "./src/content.ts",
     popup: "./src/popup.ts",
+    learn :"./src/learn.ts"
   },
 
   output: {
@@ -31,6 +32,11 @@ module.exports = {
       filename: "popup.html", // Output filename for popup
       template: "src/popup.html", // Template source
       chunks: ["popup"], // Include only the popup bundle
+    }),
+    new HtmlWebpackPlugin({
+      filename: "learn.html", // Output filename for popup
+      template: "src/learn.html", // Template source
+      chunks: ["learn"], // Include only the popup bundle
     }),
   ],
 
