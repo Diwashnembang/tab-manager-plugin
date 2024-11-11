@@ -1,0 +1,76 @@
+/* Body Styling */
+body {
+    font-family: 'Arial', sans-serif; /* Font for the body */
+    background-color: #f4f4f4; /* Light grey background */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    display: flex; /* Use flexbox for alignment */
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center items horizontally */
+    color: #333; /* Dark grey text color */
+    width: 400px; /* Full width for responsiveness */
+    max-width: 800px; /* Maximum width to maintain readability */
+    margin: auto; /* Center container horizontally */
+}
+
+/* Container Styling */
+.container {
+    padding: 30px; /* Increased padding for spacing */
+    margin: 20px; /* Margin for spacing around container */
+    background: white; /* White background for content */
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    transition: transform 0.3s; /* Smooth transform on hover */
+}
+
+/* Hover effect for container */
+.container:hover {
+    transform: translateY(-5px); /* Slight lift effect */
+}
+
+/* Header Styling */
+h1 {
+    color: #0073e6; /* Primary color for the main title */
+    font-size: 2.5em; /* Increased font size */
+    margin-bottom: 20px; /* Space below title */
+    text-align: center; /* Center align title */
+}
+
+/* Sub-header Styling */
+h2 {
+    margin: 1.5em 0 0.5em; /* Spacing around sub-headers */
+    color: #333; /* Dark grey color */
+    font-size: 1.8em; /* Larger font size for sub-headers */
+}
+
+/* Code Block Styling */
+code {
+    background-color: #e6f7ff; /* Light blue background for code */
+    padding: 4px 8px; /* Padding for code block */
+    border-radius: 4px; /* Rounded corners for code block */
+    font-family: monospace; /* Monospace font for code */
+    color: #0073e6; /* Match primary color for code text */
+}
+
+/* Paragraph and List Item Styling */
+p, li {
+    line-height: 1.8; /* Increased line height for readability */
+    margin: 0.5em 0; /* Margin for spacing */
+}
+
+/* List Styling */
+ul, ol {
+    padding-left: 20px; /* Indent list items */
+}
+
+/* Anchor Tag Styling */
+a {
+    color: #0073e6; /* Primary color for links */
+    text-decoration: none; /* Remove underline from links */
+    transition: color 0.3s; /* Smooth color transition on hover */
+}
+
+/* Link Hover Effect */
+a:hover {
+    color: #005bb5; /* Darker shade for hover effect */
+}
