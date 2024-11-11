@@ -1,47 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quick Tab Switcher Guide</title>
-   <link rel="stylesheet" href="learn.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Quick Tab Switcher Guide</h1>
-        <p>Welcome to **Quick Tab Switcher**! This extension helps you switch between tabs more efficiently by allowing you to index and access tabs with a few quick keyboard shortcuts.</p>
-
-        <h2>How to Use</h2>
-        <ol>
-            <li><strong>Indexing Tabs</strong>: While on a tab you want to index, press <code>Key + Tab</code>. This will assign an index to the current tab.</li>
-            <li><strong>Switching to Indexed Tabs</strong>: To quickly access the tab you indexed, press <code>Key + Shift</code>. You’ll instantly jump to your indexed tab without scrolling through open tabs.</li>
-        </ol>
-
-        <h2>Features</h2>
-        <ul>
-            <li>**Easy tab indexing** with `Key + Tab` for fast access.</li>
-            <li>**Quick access** to indexed tabs with `Key + Shift`.</li>
-            <li>**Increased productivity** by reducing the time spent finding tabs.</li>
-        </ul>
-
-        <h2>Installation Instructions</h2>
-        <ol>
-            <li>Download or clone the Quick Tab Switcher repository to your computer.</li>
-            <li>Open Chrome and navigate to <code>chrome://extensions/</code>.</li>
-            <li>Enable <strong>Developer Mode</strong> in the top right corner.</li>
-            <li>Click on <strong>Load unpacked</strong> and select the extension folder.</li>
-        </ol>
-
-        <h2>Troubleshooting</h2>
-        <p>If you encounter any issues, try the following:</p>
-        <ul>
-            <li>Ensure you’re pressing the correct key combinations.</li>
-            <li>Reload the extension from the Extensions page (<code>chrome://extensions/</code>).</li>
-            <li>If the issue persists, please reach out to support at <a href="mailto:your-email@example.com">your-email@example.com</a>.</li>
-        </ul>
-
-        <h2>Thank You!</h2>
-        <p>Thank you for using Quick Tab Switcher! We hope this extension makes your browsing experience faster and more efficient.</p>
+    <link rel="stylesheet" href="learn.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="container">
+    <div class="nav-menu">
+      <h3>Quick Navigation</h3>
+      <ul>
+        <li><a href="#getting-started">🚀 Getting Started</a></li>
+        <li><a href="#how-it-works">🎯 How It Works</a></li>
+        <li><a href="#pro-tips">💡 Pro Tips</a></li>
+        <li><a href="#limitations">⚠️ Limitations</a></li>
+        <li><a href="#shortcuts">⌨️ Keyboard Shortcuts Examples</a></li>
+        <li><a href="#troubleshooting">🔧 Troubleshooting</a></li>
+        <li><a href="#help">🤝 Need Help</a></li>
+      </ul>
     </div>
-</body>
+
+    <h2 id="getting-started" class="subtle-heading">
+      <span class="emoji">🚀</span>Getting Started
+    </h2>
+    <p class="paragraph">
+      Quick Tab Switcher helps you navigate between browser tabs efficiently
+      using simple keyboard shortcuts. No more endless tab hunting!
+    </p>
+
+    <div class="feature-card">
+      <h3 class="subtle-heading">Core Commands</h3>
+      <ul>
+        <li><code>Custom Key + Tab</code> - Index a tab</li>
+        <li><code>Custom Key + Shift</code> - Switch to indexed tab</li>
+      </ul>
+    </div>
+
+    <h2 id="how-it-works" class="subtle-heading">
+      <span class="emoji">🎯</span>How It Works
+    </h2>
+    <ol>
+      <li>
+        <strong>Indexing Your First Tab</strong>
+        <ul>
+          <li>Navigate to a tab you frequently use</li>
+          <li>Press your chosen Custom Key (e.g., 'J') + Tab</li>
+          <li>
+            The tab is now indexed and will appear in the Quick Tab Switcher
+            panel
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Quick Switching</strong>
+        <p class="paragraph">
+          Once you've indexed a tab, instantly jump to it by pressing your
+          Custom Key + Shift
+        </p>
+      </li>
+      <li>
+        <strong>Managing Indexed Tabs</strong>
+        <ul>
+          <li>
+            Update an index: Simply use the same Custom Key on a different tab
+          </li>
+          <li>
+            Remove an index: Click the
+            <strong class="emphasized">Delete</strong> button next to any
+            indexed tab
+          </li>
+          <li>View all indexes: Open the Quick Tab Switcher panel</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Customizing Per Window</strong>
+        <p class="paragraph">
+          Each browser window manages its own key bindings, allowing you to set
+          unique shortcuts in separate windows. This flexibility helps you
+          organize tasks across different browser instances.
+        </p>
+      </li>
+    </ol>
+
+    <h2 id="pro-tips" class="subtle-heading">
+      <span class="emoji">💡</span>Pro Tips
+    </h2>
+    <div class="feature-card">
+      <h3 class="subtle-heading">Choose Memorable Keys</h3>
+      <ul>
+        <li>Numbers (1-9) for numbered tabs</li>
+        <li>Letters that match website names (G for Gmail)</li>
+        <li>Function keys (F1-F12) for special tabs</li>
+      </ul>
+    </div>
+
+    <h2 id="limitations" class="subtle-heading">
+      <span class="emoji">⚠️</span>Limitations
+    </h2>
+    <ul>
+      <li>Does not work on Chrome's protected URLs (like the New Tab page)</li>
+      <li>Limited to one Custom Key per tab</li>
+      <li>All key bindings will be lost after the browser is closed</li>
+    </ul>
+
+    <h2 id="shortcuts" class="subtle-heading">Keyboard Shortcut Examples</h2>
+    <table class="shortcut-table">
+      <tr>
+        <th>Action</th>
+        <th>Windows/Linux</th>
+        <th>Mac</th>
+      </tr>
+      <tr>
+        <td>Index Gmail tab</td>
+        <td><code>G + Tab</code></td>
+        <td><code>G + Tab</code></td>
+      </tr>
+      <tr>
+        <td>Switch to Gmail</td>
+        <td><code>G + Shift</code></td>
+        <td><code>G + Shift</code></td>
+      </tr>
+    </table>
+
+    <h2 id="troubleshooting" class="subtle-heading">
+      <span class="emoji">🔧</span>Troubleshooting
+    </h2>
+    <div class="feature-card">
+      <h3 class="subtle-heading">If something isn't working:</h3>
+      <ol>
+        <li>
+          <strong>Verify Key Combinations</strong>
+          <ul>
+            <li>Make sure you're pressing the keys simultaneously</li>
+            <li>Check if your Custom Key conflicts with other extensions</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Chrome Protected URLs</strong>
+          <ul>
+            <li>
+              Does not work on Chrome's protected URLs (like the New Tab page)
+            </li>
+            <li>Switch to a regular webpage to use the extension</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Reset the Extension</strong>
+          <ul>
+            <li>Go to <code>chrome://extensions/</code></li>
+            <li>Find Quick Tab Switcher</li>
+            <li>Click the refresh icon</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <h2 id="help" class="subtle-heading">
+      <span class="emoji">🤝</span>Need Help?
+    </h2>
+    <p class="paragraph">
+      We're here to make tab management easier! If you have questions or
+      suggestions, please reach out to support at
+      <a href="mailto:diwashnembang2@gmail.com">diwashnembang2@gmail.com</a>
+    </p>
+
+    <p class="text-center" style="margin-top: 30px">
+      Thank you for choosing Quick Tab Switcher! Happy browsing! 🎉
+    </p>
+  </body>
 </html>
