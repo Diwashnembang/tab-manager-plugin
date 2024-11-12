@@ -29,14 +29,7 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
         // Create the list item for each tab
         const listItem = document.createElement("li");
 
-        const icon = document.createElement("img");
-        icon.src =
-          "https://www.techonthenet.com/clipart/keyboard/images/shift_key.png"; // Update with your image path
-        icon.alt = "Tab Icon"; // Alt text for accessibility
-        icon.style.width = "20px"; // Set desired width
-        icon.style.height = "20px"; // Set desired height
-        icon.style.marginRight = "8px"; // Space between icon and text
-
+      
         const keyNode = document.createElement("code");
 
         keyNode.textContent = `${key} + Shift`;
@@ -58,7 +51,7 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
         // Add a click event listener to the delete button
         deleteButton.addEventListener("click", () => {
           // Send a message to delete the tab
-          PopUpPort.postMessage({ action: "deleteTab", tabId: key });
+          PopUpPort.postMessage({ action: "deleteTab", key: key });
 
           // Remove the item from the list in the popup UI
           listItem.remove();

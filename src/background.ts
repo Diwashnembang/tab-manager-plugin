@@ -77,17 +77,15 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
       //if current tab's window id == window id in the array
       if (tab[0].windowId === windows[i].window.id) {
         windows[i].tabs[request.additionalInfo.index] = tab[0];
-        // console.log("this is before the update", windows);
-        // const newData = JSON.parse(JSON.stringify(windows));
-        // console.log("this is new data", newData);
         await chrome.storage.session.set({ windowsData: windows });
-        let result = await chrome.storage.session.get(["windowsData"]);
-        console.log("this is after the update ", result);
+        port.postMessage({message : "indexTabUpdate",success : true})
         break;
       }
     }
   } catch (e) {
+    port.postMessage({success : false})
     console.log("error getting tab", e);
+    //todo : add remove button, fix index glitch, resize poppup url font size , 
   }
 }
 
@@ -121,6 +119,21 @@ async function getTabsHandler(request: any, port: chrome.runtime.Port) {
   }
 }
 
+async function removeIndex(request: any, port : chrome.runtime.Port) {
+  let currentWindow: chrome.windows.Window =
+    await chrome.windows.getLastFocused();
+  
+     for (let i = 0; i < windows.length; i++) {
+    if (currentWindow.id === windows[i].window.id) {
+      delete windows[i].tabs[request.key]
+      chrome.storage.session.set({windowsData : windows})
+      console.log("removed index")
+      break;
+    }
+  }
+  
+}
+
 chrome.runtime.onStartup.addListener(async () => {
   await chrome.storage.session.set({ shouldWakeUp: false });
 });
@@ -136,6 +149,9 @@ chrome.runtime.onConnect.addListener((port) => {
     }
     if (message.action === "getTabs") {
       getTabsHandler(message, port);
+    }
+    if(message.action ==="deleteTab"){
+      removeIndex(message,port)
     }
     if (message.action === "ping") {
       console.log("Received ping, service worker is alive");
