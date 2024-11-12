@@ -92,17 +92,28 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
 async function switchTabHandler(request: any, port: chrome.runtime.Port) {
   let indexKey = request.additionalInfo.indexKey;
   let currentWindow: chrome.windows.Window = await chrome.windows.getCurrent();
+  let activeWindow = await chrome.tabs.query({active:true})
 
   for (let i = 0; i < windows.length; i++) {
     //switch tab in the correct window
     if (currentWindow.id === windows[i].window.id) {
       let tab = windows[i].tabs[indexKey];
       if (!tab) {
+        port.postMessage({success : false, info : "key binding doesn't exists", message:"switchTabUpdate"})
         console.log("inside switch tab when no tab is found", tab);
         return;
       }
-      chrome.tabs.update(Number(tab.id), { active: true });
-      break;
+      if(activeWindow[0].id === tab.id){
+        port.postMessage({success : false, info: "Aleady on the tab", message :"switchTabUpdate"})
+        return 
+      }
+      try{
+        await chrome.tabs.update(Number(tab.id), { active: true });
+      }catch (e){
+        console.log("error swtiching tabs",e)
+        port.postMessage({success:false, info:"Error switching tab",message:"switchTabUpdate"})
+      }
+      break
     }
   }
 }

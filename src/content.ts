@@ -84,6 +84,23 @@ function handleAccessTab(e: any) {
   AccessleaderKeyPressed = false;
   indexKeyPressed = false;
 }
+function alert(success : boolean, message: string,time : number){
+      Swal.fire({
+        text: message,
+        position: "bottom",
+        timer: time, // Alert will auto-close after 3 seconds
+        timerProgressBar: true,
+        showConfirmButton: false,
+        returnFocus: false,
+        focusConfirm: false, // Prevent the confirm button from being focused automatically
+        focusCancel: false,
+        backdrop: false,
+        customClass: {
+          popup: (success) ? "custom-swal-popup" : "custom-swal-error",
+        },
+      });
+
+}
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
   { event: "keyUp", handler: handleKeyUp },
@@ -98,41 +115,18 @@ window.addEventListener("keyup", handleKeyUp);
 window.addEventListener("indexTab", handleIndexTab);
 window.addEventListener("accessTab", handleAccessTab);
 port.onMessage.addListener((response) => {
+  addCssToSwal();
   if (response.message === "indexTabUpdate") {
     if (response.success) {
-      addCssToSwal();
-      Swal.fire({
-        text: "Your tab has been indexed successfully.",
-        position: "bottom-right",
-        timer: 1500, // Alert will auto-close after 5 seconds
-        showConfirmButton: false,
-        timerProgressBar: true,
-        returnFocus: false,
-        focusConfirm: false, // Prevent the confirm button from being focused automatically
-        focusCancel: false,
-        backdrop: false,
-        customClass: {
-          popup: "custom-swal-popup",
-        },
-      });
+      alert(true,"Tab indexed successfully.",1500)
     } else {
-      Swal.fire({
-        text: "Error indexing tab. Try again.",
-        icon: "error",
-        position: "top",
-        timer: 1000, // Alert will auto-close after 3 seconds
-        timerProgressBar: true,
-        showConfirmButton: false,
-        returnFocus: false,
-        focusConfirm: false, // Prevent the confirm button from being focused automatically
-        focusCancel: false,
-        backdrop: false,
-        customClass: {
-          popup: "custom-swal-popup",
-        },
-      });
+      alert(false,"Error indexing tab. Try again.",1500)
     }
-  }
+    
+  }else if (response.message ==="switchTabUpdate"){
+    console.log(response.info)
+    alert(response.success,response.info,1500)
+    }
 });
 port.onDisconnect.addListener(() => {
   console.log("connection to port lost");
