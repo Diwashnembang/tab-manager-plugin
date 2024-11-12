@@ -54,7 +54,7 @@ function handleKeydown(e: any) {
     return;
   }
 
-  if (e.key === AccessleaderKey && indexKey && indexKey != AccessleaderKey) {
+  if (e.key === AccessleaderKey && indexKeyPressed && indexKey != AccessleaderKey) {
     AccessleaderKeyPressed = true;
     console.log("this is access keypresses", AccessleaderKeyPressed);
     console.log("this is index key", indexKey);
@@ -62,14 +62,13 @@ function handleKeydown(e: any) {
   }
 }
 function handleKeyUp(e: any) {
-  if (!indexKeyPressed) return;
   indexKeyPressed = false;
 }
 
-async function handleIndexTab(e: any) {
+ function handleIndexTab(e: any) {
   leaderKeyPressed = false;
   indexKeyPressed = false;
-  let ok = await port.postMessage({
+ port.postMessage({
     action: "getCurrentTab",
     additionalInfo: {
       index: indexKey,
