@@ -172,9 +172,9 @@ chrome.runtime.onConnect.addListener((port) => {
     console.log("port disconnected", port.name);
     await chrome.storage.session.set({ windowsData: windows });
     if (port.name === "popup") return;
-    let result = await chrome.storage.session.set({ shouldWakeUp: true });
-    console.log("set should wake up to true ");
   });
 });
+// Create an alarm that triggers every 15 minutes
+chrome.alarms.create("periodicCheck", { periodInMinutes: 1 });
 
 populateExistingWindow();

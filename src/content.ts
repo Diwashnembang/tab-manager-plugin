@@ -49,6 +49,7 @@ function handleKeydown(e: any) {
   }
 
   if (indexKeyPressed && e.key === leaderKey && leaderKey != indexKey) {
+    e.preventDefault()
     leaderKeyPressed = true;
     runIndexCurrentabEvent();
     return;
