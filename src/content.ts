@@ -92,6 +92,7 @@ function alert(success : boolean, message: string,time : number){
         timer: time, // Alert will auto-close after 3 seconds
         timerProgressBar: true,
         showConfirmButton: false,
+        showCloseButton:true,
         returnFocus: false,
         focusConfirm: false, // Prevent the confirm button from being focused automatically
         focusCancel: false,

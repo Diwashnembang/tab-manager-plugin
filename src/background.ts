@@ -60,14 +60,14 @@ async function populateExistingWindow() {
   }
 }
 
-chrome.windows.onCreated.addListener((newWindow) => {
+chrome.windows.onCreated.addListener(async (newWindow) => {
   console.log("new window created");
   let aux: windowData = {
     window: newWindow,
     tabs: {},
   };
   windows.push(aux);
-  chrome.storage.session.set({ windowsData: windows });
+  await chrome.storage.session.set({ windowsData: windows });
 });
 
 async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
@@ -91,12 +91,10 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
 
 async function switchTabHandler(request: any, port: chrome.runtime.Port) {
   let indexKey = request.additionalInfo.indexKey;
-  let currentWindow: chrome.windows.Window = await chrome.windows.getCurrent();
-  let activeWindow = await chrome.tabs.query({active:true})
-
+  let activeWindow = await chrome.tabs.query({active:true,currentWindow:true})
   for (let i = 0; i < windows.length; i++) {
     //switch tab in the correct window
-    if (currentWindow.id === windows[i].window.id) {
+    if (activeWindow[0].windowId === windows[i].window.id) {
       let tab = windows[i].tabs[indexKey];
       if (!tab) {
         port.postMessage({success : false, info : "key binding doesn't exists", message:"switchTabUpdate"})
@@ -104,6 +102,7 @@ async function switchTabHandler(request: any, port: chrome.runtime.Port) {
         return;
       }
       if(activeWindow[0].id === tab.id){
+        console.log("already on the tab")
         port.postMessage({success : false, info: "Aleady on the tab", message :"switchTabUpdate"})
         return 
       }
@@ -114,6 +113,11 @@ async function switchTabHandler(request: any, port: chrome.runtime.Port) {
         port.postMessage({success:false, info:"Error switching tab",message:"switchTabUpdate"})
       }
       break
+    }else{
+      if (i == windows.length -1){
+
+        console.log("no matching windows found for switching tabs")
+      }
     }
   }
 }
