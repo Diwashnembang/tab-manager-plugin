@@ -1,5 +1,7 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
 module.exports = {
   mode: "production",
   entry: {
@@ -37,6 +39,11 @@ module.exports = {
       filename: "learn.html", // Output filename for popup
       template: "src/learn.html", // Template source
       chunks: ["learn"], // Include only the popup bundle
+    }),
+     new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/assets', to: 'assets' }, // copies assets from src to dist
+      ],
     }),
   ],
 

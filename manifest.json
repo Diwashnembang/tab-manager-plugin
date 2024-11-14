@@ -1,10 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Switch Tab",
+  "name": "Quick Tab Switch",
   "version": "1.0",
   "description": "A Chrome extension for faster tab switch.",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"
+  },
+   "icons": {
+    "16": "dist/assets/favicon-16x16.png", 
+    "48": "dist/assets/favicon-32x32.png",
+    "128": "dist/assets/favicon-192x192.png"
   },
   "content_scripts": [
     {
