@@ -49,13 +49,17 @@ function handleKeydown(e: any) {
   }
 
   if (indexKeyPressed && e.key === leaderKey && leaderKey != indexKey) {
-    e.preventDefault()
+    e.preventDefault();
     leaderKeyPressed = true;
     runIndexCurrentabEvent();
     return;
   }
 
-  if (e.key === AccessleaderKey && indexKeyPressed && indexKey != AccessleaderKey) {
+  if (
+    e.key === AccessleaderKey &&
+    indexKeyPressed &&
+    indexKey != AccessleaderKey
+  ) {
     AccessleaderKeyPressed = true;
     console.log("this is access keypresses", AccessleaderKeyPressed);
     console.log("this is index key", indexKey);
@@ -66,10 +70,10 @@ function handleKeyUp(e: any) {
   indexKeyPressed = false;
 }
 
- function handleIndexTab(e: any) {
+function handleIndexTab(e: any) {
   leaderKeyPressed = false;
   indexKeyPressed = false;
- port.postMessage({
+  port.postMessage({
     action: "getCurrentTab",
     additionalInfo: {
       index: indexKey,
@@ -85,23 +89,40 @@ function handleAccessTab(e: any) {
   AccessleaderKeyPressed = false;
   indexKeyPressed = false;
 }
-function alert(success : boolean, message: string,time : number){
-      Swal.fire({
-        text: message,
-        position: "bottom",
-        timer: time, // Alert will auto-close after 3 seconds
-        timerProgressBar: true,
-        showConfirmButton: false,
-        showCloseButton:true,
-        returnFocus: false,
-        focusConfirm: false, // Prevent the confirm button from being focused automatically
-        focusCancel: false,
-        backdrop: false,
-        customClass: {
-          popup: (success) ? "custom-swal-popup" : "custom-swal-error",
-        },
-      });
+function alert(success: boolean, message: string, time: number) {
+  Swal.fire({
+    text: message,
+    position: "bottom",
+    timer: time, // Alert will auto-close after 3 seconds
+    timerProgressBar: true,
+    showConfirmButton: false,
+    showCloseButton: true,
+    returnFocus: false,
+    focusConfirm: false, // Prevent the confirm button from being focused automatically
+    focusCancel: false,
+    backdrop: false,
+    customClass: {
+      popup: success ? "custom-swal-popup" : "custom-swal-error",
+    },
+     didOpen: () => {
+    // Get the close button using getElementsByClassName
+    const closeButtons = document.getElementsByClassName('swal2-close');
 
+    // Make sure to check if the collection has any elements
+    if (closeButtons.length > 0) {
+      // TypeScript: cast the first element to HTMLElement
+      const closeButton = closeButtons[0] as HTMLElement;
+
+      // Now you can safely access the style property
+      closeButton.style.border = 'none !important';        // Remove border
+      closeButton.style.background = 'none !important'; 
+       closeButton.style.boxShadow = 'none !important';    // Remove background
+      closeButton.style.color = 'inherit';       // Inherit color
+      closeButton.style.fontSize = '30px';       // Optional: Change font size
+      closeButton.style.padding = '0';           // Optional: Remove padding
+    }
+  }
+  });
 }
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
@@ -120,15 +141,14 @@ port.onMessage.addListener((response) => {
   addCssToSwal();
   if (response.message === "indexTabUpdate") {
     if (response.success) {
-      alert(true,"Tab indexed successfully.",1500)
+      alert(true, "Tab indexed successfully.", 1500);
     } else {
-      alert(false,"Error indexing tab. Try again.",1500)
+      alert(false, "Error indexing tab. Try again.", 1500);
     }
-    
-  }else if (response.message ==="switchTabUpdate"){
-    console.log(response.info)
-    alert(response.success,response.info,1500)
-    }
+  } else if (response.message === "switchTabUpdate") {
+    console.log(response.info);
+    alert(response.success, response.info, 1500);
+  }
 });
 port.onDisconnect.addListener(() => {
   console.log("connection to port lost");
