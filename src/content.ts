@@ -4,16 +4,35 @@ interface Events {
   event: string;
   handler: EventListener;
 }
+interface windowData {
+  window: chrome.windows.Window;
+  tabs: Record<number | string, chrome.tabs.Tab>;
+}
+let  bindings: Record<number | string, chrome.tabs.Tab>= {}
 let leaderKey: string = "Tab";
 let indexKey: string = "";
 let AccessleaderKey: string = "Shift";
 let leaderKeyPressed: boolean = false;
 let indexKeyPressed: boolean = false;
 let AccessleaderKeyPressed: boolean = false;
+let windows: chrome.tabs.Tab[] = []
 
 const indexCurrentTab = new CustomEvent("indexTab");
 
 const accessTab = new CustomEvent("accessTab");
+
+async function getAllTabs(){
+    try{
+      let result  = await chrome.storage.session.get({ tabs: tabs });
+      if(result.windowsData){
+        windows = result.windowData
+      }else{
+        console.log("no tabs")
+      }
+    }catch(e){
+      console.log("error getting tabs form session becaue", e)
+    }
+}
 
 function removeEventListener(events: Events[]) {
   events.forEach((event) => {
@@ -77,6 +96,7 @@ function handleIndexTab(e: any) {
     action: "getCurrentTab",
     additionalInfo: {
       index: indexKey,
+      windows: windows,
     },
   });
 }
@@ -84,7 +104,7 @@ function handleIndexTab(e: any) {
 function handleAccessTab(e: any) {
   port.postMessage({
     action: "switchTab",
-    additionalInfo: { indexKey: indexKey },
+    additionalInfo: { indexKey: indexKey ,windows: windows},
   });
   AccessleaderKeyPressed = false;
   indexKeyPressed = false;
@@ -124,6 +144,10 @@ function alert(success: boolean, message: string, time: number) {
   }
   });
 }
+
+function setAllTabs(){
+  port.postMessage({action: "setAllTabs"})
+}
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
   { event: "keyUp", handler: handleKeyUp },
@@ -149,14 +173,15 @@ port.onMessage.addListener((response) => {
     console.log(response.info);
     alert(response.success, response.info, 1500);
   }
+
+  if(response.message ==="updateData"){
+    getAllTabs()
+  }
 });
 port.onDisconnect.addListener(() => {
   console.log("connection to port lost");
-  removeEventListener(events);
+port = chrome.runtime.connect({name:"content"})
+console.log("this is the new connetion  to background")
 });
-//   // Save the windows data to chrome.storage
 
-// // Periodically send a ping to keep the service worker alive
-// setInterval(() => {
-//   port.postMessage({ action: "ping" });
-// }, 60000)
+setAllTabs()

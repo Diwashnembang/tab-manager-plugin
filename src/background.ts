@@ -1,83 +1,33 @@
-interface windowData {
-  window: chrome.windows.Window;
-  tabs: Record<number | string, chrome.tabs.Tab>;
-}
-
-let tab: chrome.tabs.Tab[];
-let windows: windowData[] = [];
-
+let tabs: chrome.tabs.Tab[]
 // Utility function to serialize a Map to an array of key-value pairs
 function serializeMap(map: Map<any, any>): [any, any][] {
   return Array.from(map.entries()); // Converts the Map to an array of tuples
 }
 
-async function populateExistingWindow() {
+
+
+async function setAllTabsHandler(request : any , port : chrome.runtime.Port){
   try {
-    // Retrieve the windows data from chrome.storage when the service worker starts
-    let result = await chrome.storage.session.get(["windowsData"]);
-    let windowsHistory: chrome.windows.Window[] = [];
-
-    if (result.windowsData) {
-      console.log("This is from session:", result.windowsData);
-      windows = result.windowsData;
-      console.log("This is windows after loading from session:", windows);
-    } else {
-      console.log("No window data; loading all tabs into windows");
-      windowsHistory = await chrome.windows.getAll({
-        populate: true,
-      });
-      for (let i = 0; i < windowsHistory.length; i++) {
-        let aux: windowData = {
-          window: windowsHistory[i],
-          tabs: {},
-        };
-        windows.push(aux);
-      }
-    }
-
-    // Populate windows with existing tab data if windowsHistory is not empty
-    for (let i = 0; i < windows.length; i++) {
-      let tabs = windows[i].window?.tabs;
-      if (tabs) {
-        for (let j = 0; j < tabs.length; j++) {
-          let tabId = tabs[j]?.id;
-          if (!tabId) {
-            throw `Tab ID invalid for tab: ${tabs[j]}`;
-          } else {
-            console.log("executing content sscript for all the tab");
-            chrome.scripting.executeScript({
-              target: { tabId: tabId },
-              files: ["dist/content.js"],
-            });
-          }
-        }
-      } else {
-        console.log("no tabs in windows");
-      }
-    }
-  } catch (e) {
-    console.log("Error populating window:", e);
+    tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    await chrome.storage.session.set({tabs: tabs})
+    port.postMessage({message:"updateData",success: true})
+    
   }
 }
-
 chrome.windows.onCreated.addListener(async (newWindow) => {
   console.log("new window created");
-  let aux: windowData = {
-    window: newWindow,
-    tabs: {},
-  };
-  windows.push(aux);
-  await chrome.storage.session.set({ windowsData: windows });
 });
 
-async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
+async function indexTabHandler(request: any, port: chrome.runtime.Port) {
+  let windows = request.additionalInfo.windows
   try {
-    tab = await chrome.tabs.query({ active: true, currentWindow: true });
+    let tab = await chrome.tabs.query({ active: true, currentWindow: true });
     for (let i = 0; i < windows.length; i++) {
       //if current tab's window id == window id in the array
       if (tab[0].windowId === windows[i].window.id) {
         windows[i].tabs[request.additionalInfo.index] = tab[0];
         await chrome.storage.session.set({ windowsData: windows });
+        port.postMessage({message:"updateData",success: true})
         port.postMessage({message : "indexTabUpdate",success : true})
         break;
       }
@@ -85,12 +35,12 @@ async function getCurrentTabHandler(request: any, port: chrome.runtime.Port) {
   } catch (e) {
     port.postMessage({success : false})
     console.log("error getting tab", e);
-    //todo : add remove button, fix index glitch, resize poppup url font size , 
   }
 }
 
 async function switchTabHandler(request: any, port: chrome.runtime.Port) {
   let indexKey = request.additionalInfo.indexKey;
+  let windows = request.additionalInfo.windows
   let activeWindow = await chrome.tabs.query({active:true,currentWindow:true})
   for (let i = 0; i < windows.length; i++) {
     //switch tab in the correct window
@@ -168,17 +118,13 @@ chrome.runtime.onConnect.addListener((port) => {
     if(message.action ==="deleteTab"){
       removeIndex(message,port)
     }
-    if (message.action === "ping") {
-      console.log("Received ping, service worker is alive");
+    if (message.action === "setAllTabs") {
+      setAllTabsHandler(message,port)
     }
   });
   port.onDisconnect.addListener(async () => {
     console.log("port disconnected", port.name);
-    await chrome.storage.session.set({ windowsData: windows });
     if (port.name === "popup") return;
   });
 });
-// Create an alarm that triggers every 15 minutes
-chrome.alarms.create("periodicCheck", { periodInMinutes: 1 });
 
-populateExistingWindow();
