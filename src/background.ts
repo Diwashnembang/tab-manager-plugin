@@ -10,10 +10,6 @@
 let bindings: Record<string | number, Record<string, chrome.tabs.Tab>> = {};
 //usings this to store tabs that is get from quering tabs
 let tabs: chrome.tabs.Tab[] = [];
-// Utility function to serialize a Map to an array of key-value pairs
-function serializeMap(map: Map<any, any>): [any, any][] {
-  return Array.from(map.entries()); // Converts the Map to an array of tuples
-}
 
 async function setBindingsHandler(message: any, port: chrome.runtime.Port) {
   try {

@@ -100,15 +100,16 @@ function alert(success: boolean, message: string, time: number) {
   Toastify({
     text: message,
     style: {
-      background: success ? "linear-gradient(to right, #4caf50, #2e7d32)" : "linear-gradient(to right, #ff0000, #e60000"
-,
+      background: success
+        ? "linear-gradient(to right, #4caf50, #2e7d32)"
+        : "linear-gradient(to right, #ff0000, #e60000",
+        fontSize : "16px"
     },
     duration: time,
-    gravity:"bottom",
-    position:"right",
-    close:true ,
-    stopOnFocus: true
-    
+    gravity: "bottom",
+    position: "right",
+    close: true,
+    stopOnFocus: true,
   }).showToast();
 }
 
@@ -147,4 +148,3 @@ window.addEventListener("indexTab", handleIndexTab);
 window.addEventListener("accessTab", handleAccessTab);
 backgroundListner();
 port.postMessage({ action: "triggerUpdateBinding" });
-
