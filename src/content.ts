@@ -6,33 +6,22 @@ interface Events {
 }
 interface windowData {
   window: chrome.windows.Window;
-  tabs: Record<number | string, chrome.tabs.Tab>;
+  tabs: Record<number | string, number>;
 }
-let  bindings: Record<number | string, chrome.tabs.Tab>= {}
+//no need to store tabs. jsut store bindings
+let bindings: Record<string, chrome.tabs.Tab> = {};
 let leaderKey: string = "Tab";
 let indexKey: string = "";
 let AccessleaderKey: string = "Shift";
 let leaderKeyPressed: boolean = false;
 let indexKeyPressed: boolean = false;
 let AccessleaderKeyPressed: boolean = false;
-let windows: chrome.tabs.Tab[] = []
+let tabs: chrome.tabs.Tab[] = [];
 
 const indexCurrentTab = new CustomEvent("indexTab");
 
 const accessTab = new CustomEvent("accessTab");
 
-async function getAllTabs(){
-    try{
-      let result  = await chrome.storage.session.get({ tabs: tabs });
-      if(result.windowsData){
-        windows = result.windowData
-      }else{
-        console.log("no tabs")
-      }
-    }catch(e){
-      console.log("error getting tabs form session becaue", e)
-    }
-}
 
 function removeEventListener(events: Events[]) {
   events.forEach((event) => {
@@ -89,22 +78,26 @@ function handleKeyUp(e: any) {
   indexKeyPressed = false;
 }
 
-function handleIndexTab(e: any) {
+async function handleIndexTab(e: any) {
   leaderKeyPressed = false;
   indexKeyPressed = false;
-  port.postMessage({
-    action: "getCurrentTab",
-    additionalInfo: {
-      index: indexKey,
-      windows: windows,
-    },
-  });
+  if(port){
+    //FIXME this is not triggring
+    port.postMessage({
+      action: "setBinding",
+      additionalInfo: {
+       index: indexKey 
+      },
+    });
+  }else{
+    console.log("cannot send message to port because port is", port)
+  }
 }
 
 function handleAccessTab(e: any) {
   port.postMessage({
     action: "switchTab",
-    additionalInfo: { indexKey: indexKey ,windows: windows},
+    additionalInfo: { tabId : bindings[indexKey]},
   });
   AccessleaderKeyPressed = false;
   indexKeyPressed = false;
@@ -124,30 +117,28 @@ function alert(success: boolean, message: string, time: number) {
     customClass: {
       popup: success ? "custom-swal-popup" : "custom-swal-error",
     },
-     didOpen: () => {
-    // Get the close button using getElementsByClassName
-    const closeButtons = document.getElementsByClassName('swal2-close');
+    didOpen: () => {
+      // Get the close button using getElementsByClassName
+      const closeButtons = document.getElementsByClassName("swal2-close");
 
-    // Make sure to check if the collection has any elements
-    if (closeButtons.length > 0) {
-      // TypeScript: cast the first element to HTMLElement
-      const closeButton = closeButtons[0] as HTMLElement;
+      // Make sure to check if the collection has any elements
+      if (closeButtons.length > 0) {
+        // TypeScript: cast the first element to HTMLElement
+        const closeButton = closeButtons[0] as HTMLElement;
 
-      // Now you can safely access the style property
-      closeButton.style.border = 'none !important';        // Remove border
-      closeButton.style.background = 'none !important'; 
-       closeButton.style.boxShadow = 'none !important';    // Remove background
-      closeButton.style.color = 'inherit';       // Inherit color
-      closeButton.style.fontSize = '30px';       // Optional: Change font size
-      closeButton.style.padding = '0';           // Optional: Remove padding
-    }
-  }
+        // Now you can safely access the style property
+        closeButton.style.border = "none !important"; // Remove border
+        closeButton.style.background = "none !important";
+        closeButton.style.boxShadow = "none !important"; // Remove background
+        closeButton.style.color = "inherit"; // Inherit color
+        closeButton.style.fontSize = "30px"; // Optional: Change font size
+        closeButton.style.padding = "0"; // Optional: Remove padding
+      }
+    },
   });
 }
 
-function setAllTabs(){
-  port.postMessage({action: "setAllTabs"})
-}
+
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
   { event: "keyUp", handler: handleKeyUp },
@@ -155,12 +146,16 @@ const events: Events[] = [
   { event: "indexTab", handler: handleIndexTab },
 ];
 
-console.log("connetion established with backgroound");
+
 let port = chrome.runtime.connect({ name: "content" });
+port.postMessage({action: "triggerUpdateBinding"})
 window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyUp);
 window.addEventListener("indexTab", handleIndexTab);
 window.addEventListener("accessTab", handleAccessTab);
+setInterval(()=>{
+  port.postMessage({action:"health"})
+},15*1000)
 port.onMessage.addListener((response) => {
   addCssToSwal();
   if (response.message === "indexTabUpdate") {
@@ -174,14 +169,17 @@ port.onMessage.addListener((response) => {
     alert(response.success, response.info, 1500);
   }
 
-  if(response.message ==="updateData"){
-    getAllTabs()
+  if (response.message === "updateData") {
+    console.log("inside updateData")
+    if(response.success){
+      tabs = response.data
+      console.log("this is tabs",tabs)
+    }
+  }
+  if (response.message === "updateBindings") {
+    if(response.success){
+      bindings = response.data
+      console.log("this is bindigs",bindings)
+    }
   }
 });
-port.onDisconnect.addListener(() => {
-  console.log("connection to port lost");
-port = chrome.runtime.connect({name:"content"})
-console.log("this is the new connetion  to background")
-});
-
-setAllTabs()

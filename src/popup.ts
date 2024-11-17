@@ -3,6 +3,7 @@ type Tabs = Map<number | string, chrome.tabs.Tab>;
 const PopUpPort = chrome.runtime.connect({ name: "popup" });
 
 (async () => {
+
   PopUpPort.postMessage({ action: "getTabs" });
 
   PopUpPort.onMessage.addListener((response) => {
