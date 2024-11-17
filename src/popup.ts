@@ -1,10 +1,11 @@
+import "./popup.css"
 const tabList: HTMLElement | null = document.getElementById("tabList");
 type Tabs = Map<number | string, chrome.tabs.Tab>;
 const PopUpPort = chrome.runtime.connect({ name: "popup" });
 
 (async () => {
 
-  PopUpPort.postMessage({ action: "getTabs" });
+  PopUpPort.postMessage({ action: "getBindings" });
 
   PopUpPort.onMessage.addListener((response) => {
     try {
@@ -15,7 +16,7 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
         return;
       }
 
-      if (Object.keys(tabs).length === 0) {
+      if (Object.keys(tabs).length === 0 ) {
         {
           // Redirect to a different page within the same site
           window.location.href = "learn.html";

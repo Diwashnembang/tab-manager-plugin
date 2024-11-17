@@ -8,6 +8,7 @@ module.exports = {
     background: "./src/background.ts",
     content: "./src/content.ts",
     popup: "./src/popup.ts",
+    learn:"./src/learn.ts"
   },
 
   output: {
@@ -25,6 +26,10 @@ module.exports = {
       {
         test: /\.html$/, // For HTML files
         use: "html-loader", // Use html-loader to process HTML files
+      },
+      {
+        test: /\.css$/i, // Regular expression to match .css files
+        use: ['style-loader', 'css-loader'], // Use these loaders to handle CSS files
       },
     ],
   },

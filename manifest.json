@@ -26,12 +26,6 @@
   },
 
   "permissions": [
-    "activeTab",
-    "scripting",
-    "tabs",
-    "windows",
-    "storage",
-    "alarms"
-  ],
-  "host_permissions": ["http://*/*", "https://*/*"]
+    "tabs"
+  ]
 }
