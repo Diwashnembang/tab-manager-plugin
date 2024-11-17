@@ -53,7 +53,7 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
         // Add a click event listener to the delete button
         deleteButton.addEventListener("click", () => {
           // Send a message to delete the tab
-          PopUpPort.postMessage({ action: "deleteTab", key: key });
+          PopUpPort.postMessage({ action: "deleteBinding", key: key, windowId : tab.windowId});
 
           // Remove the item from the list in the popup UI
           listItem.remove();

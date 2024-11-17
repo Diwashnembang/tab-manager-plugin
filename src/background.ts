@@ -65,20 +65,9 @@ async function switchTabHandler(request: any, port: chrome.runtime.Port) {
   }
 }
 
-// async function removeIndex(request: any, port : chrome.runtime.Port) {
-//   let currentWindow: chrome.windows.Window =
-//     await chrome.windows.getLastFocused();
-
-//      for (let i = 0; i < windows.length; i++) {
-//     if (currentWindow.id === windows[i].window.id) {
-//       delete windows[i].tabs[request.key]
-//       chrome.storage.session.set({windowsData : windows})
-//       console.log("removed index")
-//       break;
-//     }
-//   }
-
-// }
+async function deleteBindignHandler(request:any , port : chrome.runtime.Port){
+  delete bindings[request.windowId][request.key]
+}
 
 chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((message) => {
@@ -88,7 +77,8 @@ chrome.runtime.onConnect.addListener((port) => {
     if (message.action === "switchTab") {
       switchTabHandler(message, port);
     }
-    if (message.action === "deleteTab") {
+    if (message.action === "deleteBinding") {
+      deleteBindignHandler(message,port)
     }
     if (message.action === "setBinding") {
       setBindingsHandler(message, port);

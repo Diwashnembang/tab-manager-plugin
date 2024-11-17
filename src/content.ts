@@ -100,12 +100,14 @@ function alert(success: boolean, message: string, time: number) {
   Toastify({
     text: message,
     style: {
-      background: "linear-gradient(to right, #00b09b, #96c93d)",
+      background: success ? "linear-gradient(to right, #4caf50, #2e7d32)" : "linear-gradient(to right, #ff0000, #e60000"
+,
     },
     duration: time,
     gravity:"bottom",
-    position:"left",
-    close:true 
+    position:"right",
+    close:true ,
+    stopOnFocus: true
     
   }).showToast();
 }
@@ -145,7 +147,4 @@ window.addEventListener("indexTab", handleIndexTab);
 window.addEventListener("accessTab", handleAccessTab);
 backgroundListner();
 port.postMessage({ action: "triggerUpdateBinding" });
-//so that service worker isn't supspended
-setInterval(() => {
-  port.postMessage({ action: "health" });
-}, 1000);
+
