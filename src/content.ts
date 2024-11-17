@@ -1,9 +1,12 @@
-import Swal from "sweetalert2";
+import Toastify from "toastify-js";
+import "toastify-js/src/toastify.css";
 import { addCssToSwal } from "./swalConfig";
 interface Events {
   event: string;
   handler: EventListener;
 }
+
+//no need to store tabs. jsut store bindings
 let leaderKey: string = "Tab";
 let indexKey: string = "";
 let AccessleaderKey: string = "Shift";
@@ -70,60 +73,67 @@ function handleKeyUp(e: any) {
   indexKeyPressed = false;
 }
 
-function handleIndexTab(e: any) {
+async function handleIndexTab(e: any) {
   leaderKeyPressed = false;
   indexKeyPressed = false;
-  port.postMessage({
-    action: "getCurrentTab",
-    additionalInfo: {
-      index: indexKey,
-    },
-  });
+  if (port) {
+    port.postMessage({
+      action: "setBinding",
+      additionalInfo: {
+        index: indexKey,
+      },
+    });
+  } else {
+    console.log("cannot send message to port because port is", port);
+  }
 }
 
 function handleAccessTab(e: any) {
   port.postMessage({
     action: "switchTab",
-    additionalInfo: { indexKey: indexKey },
+    index: indexKey,
   });
   AccessleaderKeyPressed = false;
   indexKeyPressed = false;
 }
 function alert(success: boolean, message: string, time: number) {
-  Swal.fire({
+  Toastify({
     text: message,
-    position: "bottom",
-    timer: time, // Alert will auto-close after 3 seconds
-    timerProgressBar: true,
-    showConfirmButton: false,
-    showCloseButton: true,
-    returnFocus: false,
-    focusConfirm: false, // Prevent the confirm button from being focused automatically
-    focusCancel: false,
-    backdrop: false,
-    customClass: {
-      popup: success ? "custom-swal-popup" : "custom-swal-error",
+    style: {
+      background: success
+        ? "linear-gradient(to right, #4caf50, #2e7d32)"
+        : "linear-gradient(to right, #ff0000, #e60000",
+        fontSize : "16px"
     },
-     didOpen: () => {
-    // Get the close button using getElementsByClassName
-    const closeButtons = document.getElementsByClassName('swal2-close');
+    duration: time,
+    gravity: "bottom",
+    position: "right",
+    close: true,
+    stopOnFocus: true,
+  }).showToast();
+}
 
-    // Make sure to check if the collection has any elements
-    if (closeButtons.length > 0) {
-      // TypeScript: cast the first element to HTMLElement
-      const closeButton = closeButtons[0] as HTMLElement;
-
-      // Now you can safely access the style property
-      closeButton.style.border = 'none !important';        // Remove border
-      closeButton.style.background = 'none !important'; 
-       closeButton.style.boxShadow = 'none !important';    // Remove background
-      closeButton.style.color = 'inherit';       // Inherit color
-      closeButton.style.fontSize = '30px';       // Optional: Change font size
-      closeButton.style.padding = '0';           // Optional: Remove padding
+function backgroundListner() {
+  port.onMessage.addListener((response) => {
+    addCssToSwal();
+    if (response.message === "indexingTabUpdate") {
+      if (response.success) {
+        alert(true, "Tab indexed successfully.", 1500);
+      } else {
+        alert(false, "Error indexing tab. Try again.", 1500);
+      }
+    } else if (response.message === "switchingTabUpdate") {
+      console.log(response.info);
+      alert(response.success, response.info, 1500);
     }
-  }
+  });
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.message === "switchingTabUpdate") {
+      alert(message.success, message.info, 1500);
+    }
   });
 }
+
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
   { event: "keyUp", handler: handleKeyUp },
@@ -131,32 +141,10 @@ const events: Events[] = [
   { event: "indexTab", handler: handleIndexTab },
 ];
 
-console.log("connetion established with backgroound");
 let port = chrome.runtime.connect({ name: "content" });
 window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyUp);
 window.addEventListener("indexTab", handleIndexTab);
 window.addEventListener("accessTab", handleAccessTab);
-port.onMessage.addListener((response) => {
-  addCssToSwal();
-  if (response.message === "indexTabUpdate") {
-    if (response.success) {
-      alert(true, "Tab indexed successfully.", 1500);
-    } else {
-      alert(false, "Error indexing tab. Try again.", 1500);
-    }
-  } else if (response.message === "switchTabUpdate") {
-    console.log(response.info);
-    alert(response.success, response.info, 1500);
-  }
-});
-port.onDisconnect.addListener(() => {
-  console.log("connection to port lost");
-  removeEventListener(events);
-});
-//   // Save the windows data to chrome.storage
-
-// // Periodically send a ping to keep the service worker alive
-// setInterval(() => {
-//   port.postMessage({ action: "ping" });
-// }, 60000)
+backgroundListner();
+port.postMessage({ action: "triggerUpdateBinding" });

@@ -1,9 +1,11 @@
+import "./popup.css"
 const tabList: HTMLElement | null = document.getElementById("tabList");
 type Tabs = Map<number | string, chrome.tabs.Tab>;
 const PopUpPort = chrome.runtime.connect({ name: "popup" });
 
 (async () => {
-  PopUpPort.postMessage({ action: "getTabs" });
+
+  PopUpPort.postMessage({ action: "getBindings" });
 
   PopUpPort.onMessage.addListener((response) => {
     try {
@@ -14,7 +16,7 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
         return;
       }
 
-      if (Object.keys(tabs).length === 0) {
+      if (Object.keys(tabs).length === 0 ) {
         {
           // Redirect to a different page within the same site
           window.location.href = "learn.html";
@@ -51,7 +53,7 @@ const PopUpPort = chrome.runtime.connect({ name: "popup" });
         // Add a click event listener to the delete button
         deleteButton.addEventListener("click", () => {
           // Send a message to delete the tab
-          PopUpPort.postMessage({ action: "deleteTab", key: key });
+          PopUpPort.postMessage({ action: "deleteBinding", key: key, windowId : tab.windowId});
 
           // Remove the item from the list in the popup UI
           listItem.remove();

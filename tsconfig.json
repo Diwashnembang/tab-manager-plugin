@@ -5,7 +5,8 @@
     "module": "esnext",
     "lib": ["dom", "es6"],
     "outDir": "dist",
-    "strict": true
+    "strict": true,
+     "allowSyntheticDefaultImports": true,
   },
   "include": ["src/**/*"]
 }
