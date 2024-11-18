@@ -64,8 +64,6 @@ function handleKeydown(e: any) {
     indexKey != AccessleaderKey
   ) {
     AccessleaderKeyPressed = true;
-    console.log("this is access keypresses", AccessleaderKeyPressed);
-    console.log("this is index key", indexKey);
     runAccessTabEvent();
   }
 }
@@ -76,6 +74,9 @@ function handleKeyUp(e: any) {
 async function handleIndexTab(e: any) {
   leaderKeyPressed = false;
   indexKeyPressed = false;
+  if (port === null) {
+    connectToPort();
+  }
   if (port) {
     port.postMessage({
       action: "setBinding",
@@ -83,16 +84,19 @@ async function handleIndexTab(e: any) {
         index: indexKey,
       },
     });
-  } else {
-    console.log("cannot send message to port because port is", port);
   }
 }
 
 function handleAccessTab(e: any) {
-  port.postMessage({
-    action: "switchTab",
-    index: indexKey,
-  });
+  if (port === null) {
+    connectToPort();
+  }
+  if (port) {
+    port.postMessage({
+      action: "switchTab",
+      index: indexKey,
+    });
+  }
   AccessleaderKeyPressed = false;
   indexKeyPressed = false;
 }
@@ -103,7 +107,7 @@ function alert(success: boolean, message: string, time: number) {
       background: success
         ? "linear-gradient(to right, #4caf50, #2e7d32)"
         : "linear-gradient(to right, #ff0000, #e60000",
-        fontSize : "16px"
+      fontSize: "16px",
     },
     duration: time,
     gravity: "bottom",
@@ -114,6 +118,7 @@ function alert(success: boolean, message: string, time: number) {
 }
 
 function backgroundListner() {
+  if (port === null) return console.log("port is null");
   port.onMessage.addListener((response) => {
     addCssToSwal();
     if (response.message === "indexingTabUpdate") {
@@ -127,13 +132,15 @@ function backgroundListner() {
       alert(response.success, response.info, 1500);
     }
   });
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.message === "switchingTabUpdate") {
-      alert(message.success, message.info, 1500);
-    }
-  });
 }
 
+function connectToPort() {
+  port = chrome.runtime.connect({ name: "content" });
+  backgroundListner();
+  port.onDisconnect.addListener(() => {
+    port = null;
+  });
+}
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
   { event: "keyUp", handler: handleKeyUp },
@@ -141,10 +148,20 @@ const events: Events[] = [
   { event: "indexTab", handler: handleIndexTab },
 ];
 
-let port = chrome.runtime.connect({ name: "content" });
+let port: chrome.runtime.Port | null = chrome.runtime.connect({
+  name: "content",
+});
+let pingInterval: NodeJS.Timeout;
 window.addEventListener("keydown", handleKeydown);
 window.addEventListener("keyup", handleKeyUp);
 window.addEventListener("indexTab", handleIndexTab);
 window.addEventListener("accessTab", handleAccessTab);
 backgroundListner();
-port.postMessage({ action: "triggerUpdateBinding" });
+port.onDisconnect.addListener(() => {
+  port = null;
+});
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.message === "switchingTabUpdate") {
+    alert(message.success, message.info, 1500);
+  }
+});
