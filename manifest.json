@@ -25,5 +25,5 @@
     "service_worker": "dist/background.js"
   },
 
-  "permissions": ["tabs", "storage"]
+  "permissions": ["tabs", "storage","notifications"]
 }

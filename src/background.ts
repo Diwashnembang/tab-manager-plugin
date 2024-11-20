@@ -11,6 +11,8 @@ let bindings: Record<string | number, Record<string, chrome.tabs.Tab>> = {};
 //usings this to store tabs that is get from quering tabs
 let tabs: chrome.tabs.Tab[] = [];
 
+let interval: NodeJS.Timeout;
+
 async function setBindingsHandler(message: any, port: chrome.runtime.Port) {
   try {
     tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -84,6 +86,16 @@ async function deleteBindignHandler(request: any, port: chrome.runtime.Port) {
   }
 }
 
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.notifications.create({
+    type: "basic",
+    iconUrl: "./assets/favicon-192x192.png", // Path to your icon
+    title: "Action Needed: Reload Required",
+    message:
+      "Please reload the tabs opened before the extension was installed, or restart your browser to apply the changes.",
+  });
+});
+
 chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((message) => {
     if (message.action === "switchTab") {
@@ -102,7 +114,7 @@ chrome.runtime.onConnect.addListener((port) => {
 
   //so that service worker isn't supspended
   if (port.name !== "popup") {
-    setInterval(() => {
+    interval = setInterval(() => {
       try {
         port.postMessage({ action: "health" });
       } catch (e) {
@@ -110,6 +122,10 @@ chrome.runtime.onConnect.addListener((port) => {
       }
     }, 15 * 1000);
   }
+
+  port.onDisconnect.addListener(() => {
+    clearInterval(interval);
+  });
 });
 
 async function seedBindings() {

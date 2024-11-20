@@ -117,6 +117,9 @@ function alert(success: boolean, message: string, time: number) {
   }).showToast();
 }
 
+function changeTitle(index : string){
+  document.title = `[ ${index} ]  ${document.title}`
+}
 function backgroundListner() {
   if (port === null) return console.log("port is null");
   port.onMessage.addListener((response) => {
@@ -124,6 +127,7 @@ function backgroundListner() {
     if (response.message === "indexingTabUpdate") {
       if (response.success) {
         alert(true, "Tab indexed successfully.", 1500);
+        changeTitle(indexKey)
       } else {
         alert(false, "Error indexing tab. Try again.", 1500);
       }
@@ -161,6 +165,7 @@ port.onDisconnect.addListener(() => {
   port = null;
 });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  //this is use for receving sucess message. only one tab receives this  
   if (message.message === "switchingTabUpdate") {
     alert(message.success, message.info, 1500);
   }
