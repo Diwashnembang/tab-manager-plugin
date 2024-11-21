@@ -162,7 +162,7 @@ function connectToPort() {
 }
 const events: Events[] = [
   { event: "keydown", handler: handleKeydown },
-  { event: "keyUp", handler: handleKeyUp },
+  { event: "keyup", handler: handleKeyUp },
   { event: "accessTab", handler: handleAccessTab },
   { event: "indexTab", handler: handleIndexTab },
 ];
