@@ -90,12 +90,6 @@ chrome.runtime.onInstalled.addListener(async () => {
   let promises :Promise<chrome.scripting.InjectionResult<unknown>[]>[]=[]
   try{
     tabs = await chrome.tabs.query({})
-    tabs.forEach(tab=>{
-      let tabId = tab.id
-      if(tabId){
-        chrome.tabs.sendMessage(tabId,{action:"removeListners"})
-      }
-    })
     let keyBindings = await chrome.storage.session.get(["bindings"])
     if(keyBindings.bindings){
       bindings = keyBindings.bindings

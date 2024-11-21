@@ -1,6 +1,5 @@
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
-import { addCssToSwal } from "./swalConfig";
 interface Events {
   event: string;
   handler: EventListener;
@@ -41,12 +40,6 @@ function addEventListener(evetns: Events[]) {
   events.forEach((event) => {
     window.addEventListener(event.event, event.handler);
   });
-}
-
-function trackKeyPressedDuration(callback: () => void, duration: number) {
-  setTimeout(() => {
-    callback();
-  }, duration);
 }
 //trigger indexCurreentTAb
 function runIndexCurrentabEvent() {
@@ -145,7 +138,6 @@ function changeTitle(index: string) {
 function backgroundListner() {
   if (port === null) return console.log("port is null");
    port.onMessage.addListener((response) => {
-    addCssToSwal();
     if (response.message === "indexingTabUpdate") {
       if (response.success) {
         alert(true, "Tab indexed successfully.", 1500);
@@ -154,7 +146,6 @@ function backgroundListner() {
         alert(false, "Error indexing tab. Try again.", 1500);
       }
     } else if (response.message === "switchingTabUpdate") {
-      console.log(response.info);
       alert(response.success, response.info, 1500);
     }
   });
@@ -176,11 +167,9 @@ const events: Events[] = [
   { event: "indexTab", handler: handleIndexTab },
 ];
 let port: chrome.runtime.Port | null;
-let backgroundsListner: chrome.runtime.Port
 port = chrome.runtime.connect({
   name: "content",
 });
-if (!port) throw "couldnot connect to background : context invalidated ";
 addEventListener(events);
 backgroundListner();
 port.onDisconnect.addListener(() => {
@@ -191,9 +180,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   //this is use for receving sucess message. only one tab receives this
   if (message.message === "switchingTabUpdate") {
     alert(message.success, message.info, 1500);
-  }
-
-  if(message.action ==="removeListners"){
-    removeEventListener(events)
   }
 });
