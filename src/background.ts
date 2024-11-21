@@ -86,14 +86,44 @@ async function deleteBindignHandler(request: any, port: chrome.runtime.Port) {
   }
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.notifications.create({
-    type: "basic",
-    iconUrl: "./assets/favicon-192x192.png", // Path to your icon
-    title: "Action Needed: Reload Required",
-    message:
-      "Please reload the tabs opened before the extension was installed, or restart your browser to apply the changes.",
-  });
+chrome.runtime.onInstalled.addListener(async () => {
+  let promises :Promise<chrome.scripting.InjectionResult<unknown>[]>[]=[]
+  try{
+    tabs = await chrome.tabs.query({})
+    tabs.forEach(tab=>{
+      let tabId = tab.id
+      if(tabId){
+        chrome.tabs.sendMessage(tabId,{action:"removeListners"})
+      }
+    })
+    let keyBindings = await chrome.storage.session.get(["bindings"])
+    if(keyBindings.bindings){
+      bindings = keyBindings.bindings
+    }
+    if(!tabs) throw "no tabs"
+    for(let i=0 ; i< tabs.length; i++ ){
+      try{
+        
+        let tabId = tabs[i]?.id
+        if(!tabId) throw "no tab id to inject content"
+        let result = chrome.scripting.executeScript({
+          target: { tabId: tabId }, // Specify the tab you want to inject the script into
+          files: ['dist/content.js'] // Path to your content script file
+        },)
+        ;
+        promises.push(result) 
+      }catch (e){
+        console.log(e)
+      }
+    }
+  }catch (e){
+    console.log(e)
+  }
+  try{
+    await Promise.all(promises)
+  }catch (e){
+    console.log(e)
+  }
 });
 
 chrome.runtime.onConnect.addListener((port) => {
@@ -113,7 +143,7 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 
   //so that service worker isn't supspended
-  if (port.name !== "popup") {
+  if (port.name !== "popup" && port) {
     interval = setInterval(() => {
       try {
         port.postMessage({ action: "health" });

@@ -5,8 +5,21 @@ interface Events {
   event: string;
   handler: EventListener;
 }
+let orphanMessageId = chrome.runtime.id + 'orphanCheck';
+window.dispatchEvent(new CustomEvent(orphanMessageId));
+window.addEventListener(orphanMessageId, unregisterOrphan);
+function unregisterOrphan() {
+  if (chrome.runtime.id) {
+    // The extension context is still valid.
+    return;
+  }
 
-//no need to store tabs. jsut store bindings
+  // The extension context is invalid; the content script is orphaned.
+  window.removeEventListener(orphanMessageId, unregisterOrphan);
+  removeEventListener(events)
+  return true;
+}
+
 let leaderKey: string = "Tab";
 let indexKey: string = "";
 let AccessleaderKey: string = "Shift";
@@ -21,6 +34,12 @@ const accessTab = new CustomEvent("accessTab");
 function removeEventListener(events: Events[]) {
   events.forEach((event) => {
     window.removeEventListener(event.event, event.handler);
+  });
+}
+
+function addEventListener(evetns: Events[]) {
+  events.forEach((event) => {
+    window.addEventListener(event.event, event.handler);
   });
 }
 
@@ -72,6 +91,7 @@ function handleKeyUp(e: any) {
 }
 
 async function handleIndexTab(e: any) {
+  if(unregisterOrphan()) return 
   leaderKeyPressed = false;
   indexKeyPressed = false;
   if (port === null) {
@@ -87,7 +107,9 @@ async function handleIndexTab(e: any) {
   }
 }
 
+
 function handleAccessTab(e: any) {
+  if(unregisterOrphan()) return 
   if (port === null) {
     connectToPort();
   }
@@ -117,17 +139,17 @@ function alert(success: boolean, message: string, time: number) {
   }).showToast();
 }
 
-function changeTitle(index : string){
-  document.title = `[ ${index} ]  ${document.title}`
+function changeTitle(index: string) {
+  document.title = `[ ${index} ]  ${document.title}`;
 }
 function backgroundListner() {
   if (port === null) return console.log("port is null");
-  port.onMessage.addListener((response) => {
+   port.onMessage.addListener((response) => {
     addCssToSwal();
     if (response.message === "indexingTabUpdate") {
       if (response.success) {
         alert(true, "Tab indexed successfully.", 1500);
-        changeTitle(indexKey)
+        changeTitle(indexKey);
       } else {
         alert(false, "Error indexing tab. Try again.", 1500);
       }
@@ -137,6 +159,8 @@ function backgroundListner() {
     }
   });
 }
+
+
 
 function connectToPort() {
   port = chrome.runtime.connect({ name: "content" });
@@ -151,22 +175,25 @@ const events: Events[] = [
   { event: "accessTab", handler: handleAccessTab },
   { event: "indexTab", handler: handleIndexTab },
 ];
-
-let port: chrome.runtime.Port | null = chrome.runtime.connect({
+let port: chrome.runtime.Port | null;
+let backgroundsListner: chrome.runtime.Port
+port = chrome.runtime.connect({
   name: "content",
 });
-let pingInterval: NodeJS.Timeout;
-window.addEventListener("keydown", handleKeydown);
-window.addEventListener("keyup", handleKeyUp);
-window.addEventListener("indexTab", handleIndexTab);
-window.addEventListener("accessTab", handleAccessTab);
+if (!port) throw "couldnot connect to background : context invalidated ";
+addEventListener(events);
 backgroundListner();
 port.onDisconnect.addListener(() => {
   port = null;
 });
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  //this is use for receving sucess message. only one tab receives this  
+  //this is use for receving sucess message. only one tab receives this
   if (message.message === "switchingTabUpdate") {
     alert(message.success, message.info, 1500);
+  }
+
+  if(message.action ==="removeListners"){
+    removeEventListener(events)
   }
 });
