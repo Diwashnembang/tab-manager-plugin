@@ -25,6 +25,6 @@
     "service_worker": "dist/background.js"
   },
 
-  "permissions": ["tabs", "storage","scripting"],
+  "permissions": [ "storage","scripting"],
   "host_permissions": ["http://*/*", "https://*/*"]
 }
